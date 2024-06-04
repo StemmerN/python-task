@@ -1,9 +1,13 @@
 from fastapi import FastAPI, File, UploadFile
-from typing_extensions import Annotated
+import uvicorn
 
 app = FastAPI()
 
 
-@app.post('/upload file/')
-async def create_upload_file(file: UploadFile):
+@app.post('/upload-csv/')
+async def root(file: UploadFile = File(...)):
     return {"filename": file.filename}
+
+
+if __name__ == '__main__':
+    uvicorn.run(app, host="127.0.0.1", port=8000)
