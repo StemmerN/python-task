@@ -5,7 +5,7 @@ import uvicorn
 app = FastAPI()
 security = HTTPBasic()
 
-users_db = dict(UserTest=dict(username="Test", password="123456"))
+users_db = dict(Test=dict(username="Test", password="123456"))
 
 
 def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
