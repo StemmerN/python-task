@@ -13,14 +13,12 @@ if args.csv_path:
 else:
     file_path = 'C:/Users/nikolais/Documents/python-task/vehicles.csv'
 
-# Überprüfen ob die Datei existiert
 if os.path.exists(file_path):
     print("Die Datei existiert.")
 else:
     print("Die Datei existiert nicht.")
     exit()
 
-# Upload der Datei inkl. Datei schließen
 with open(file_path, 'rb') as file_data:
     files = {'file': file_data}
     r = requests.post(target_url, files=files)
