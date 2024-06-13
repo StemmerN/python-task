@@ -1,29 +1,33 @@
-import logging
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Depends, HTTPException
+from fastapi.security import HTTPBasicCredentials, HTTPBasic
 import uvicorn
 
 app = FastAPI()
-logger = logging.getLogger("api")
+security = HTTPBasic()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler("api.log"),
-        logging.StreamHandler()
-    ]
-)
+users_db = dict(UserTest=dict(username="Test", password="123456"))
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello, World!"}
+def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
+    user = users_db.get(credentials.username)
+    if user is None or user["password"] != credentials.password:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return user
+
+
+@app.get("/login")
+def login(user: dict = Depends(get_current_user)):
+    return {"username": user["username"], "message": "Login successful"}
 
 
 @app.post('/upload-csv/')
-async def root(file: UploadFile = File(...)):
-    logger.info("POST request received for /upload-csv/")
+async def upload_csv(file: UploadFile = File(...)):
     return {"filename": file.filename}
+
+
+@app.get('/')
+def read_root():
+    return {'message': 'Welcome to the FastAPI application'}
 
 
 if __name__ == '__main__':
