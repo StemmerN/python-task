@@ -17,7 +17,7 @@ def login():
 
     if username == 'Test' and password == '123456':
         token = str(uuid.uuid4())
-        return jsonify({'login': True, 'token': token})
+        return jsonify({'login': True, 'TestToken': token})
     else:
         return jsonify({'login': False})
 
