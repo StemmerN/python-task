@@ -1,9 +1,12 @@
 from fastapi import FastAPI, File, UploadFile, Depends, HTTPException
 from fastapi.security import HTTPBasicCredentials, HTTPBasic
 import uvicorn
+from flask import Flask, request, jsonify
+import uuid
 
 app = FastAPI()
 security = HTTPBasic()
+app = Flask(__name__)
 
 users_db = dict(Test=dict(username="Test", password="123456"))
 
@@ -13,6 +16,24 @@ def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
     if user is None or user["password"] != credentials.password:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     return user
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if username == 'Test' and password == '123456':
+        token = str(uuid.uuid4())
+        return jsonify({'login': True, 'token': token})
+    else:
+        return jsonify({'login': False})
+
+
+@app.route('/upload-csv/', methods=['POST'])
+def upload_csv():
+    token = request.headers.get('Authorization')
 
 
 @app.get("/login")
