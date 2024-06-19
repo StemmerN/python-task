@@ -1,9 +1,10 @@
 import requests
 import os
 import argparse
+from flask import Flask, request, jsonify
 
 target_url = 'http://127.0.0.1:8000/upload-csv/'
-token = 'TestToken'
+fixed_token = 'TestToken'
 
 parser = argparse.ArgumentParser(description='Client-Skript zum Hochladen einer CSV-Datei.')
 parser.add_argument('-p', '--csv-path', type=str, help='Pfad zur CSV-Datei')
@@ -20,10 +21,19 @@ else:
     print("Die Datei existiert nicht.")
     exit()
 
-with open(file_path, 'rb') as file_data:
-    files = {'file': file_data}
-    headers = {'Authorization': token}
-    r = requests.post(target_url, files=files)
+login_response = requests.post('http://127.0.0.1:8000/login', json={'username': 'Test', 'password': '123456'})
+if login_response.status_code == 200:
+    login_data = login_response.json()
+    if login_data['login']:
+        token = fixed_token
 
-print(r.status_code)
+        with open(file_path, 'rb') as file_data:
+            files = {'file': file_data}
+            headers = {'Authorization': token}
+            response = requests.post(target_url, files=files, headers=headers)
 
+        print(response.status_code)
+    else:
+        print('Login fehlgeschlagen.')
+else:
+    print('Fehler beim Login')
