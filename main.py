@@ -5,7 +5,7 @@ import requests
 
 app = FastAPI()
 
-target_url = 'http://127.0.0.1:8000/upload-csv/'
+target_url = 'http://127.0.0.1:8000'
 token = 'TestToken'
 
 
@@ -14,7 +14,6 @@ async def upload_csv(file: UploadFile = File(...), token: str = Header(None)):
     if token is None or token != 'TestToken':  # Überprüfung des Tokens
         raise HTTPException(status_code=401, detail='Ungültiges Token')
 
-    # Datei-Upload
     if file:
         return {'message': 'Datei erfolgreich hochgeladen'}
     else:
