@@ -25,7 +25,7 @@ def login(user: dict = Depends(get_current_user)):
 
 @app.post('/upload-csv/')
 async def upload_csv(file: UploadFile = File(...)):
-    if token is None or token != token:  # Token wird überprüft
+    if token is None or token != 'TestToken':
         raise HTTPException(status_code=401, detail='Token fehlt')
 
     return {'filename': file.filename}
