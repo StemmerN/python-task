@@ -23,25 +23,25 @@ args = parser.parse_args()
 file_path = args.csv_path
 
 if os.path.exists(file_path):
-    logging.info("Die Datei existiert.")
+    logging.info('Die Datei existiert.')
 else:
-    logging.error("Die Datei existiert nicht.")
+    logging.error('Die Datei existiert nicht.')
     exit()
 
-logging.info("Starte Login-Prozess.")
+logging.info('Starte Login-Prozess.')
 login_response = requests.post('http://127.0.0.1:8000/login', json={'username': 'Test', 'password': '123456'})
 if login_response.status_code == 200:
     login_data = login_response.json()
     if login_data['login']:
-        token = fixed_token
-        logging.info("Login erfolgreich.")
+        token = login_data['TestToken']
+        logging.info('Login erfolgreich.')
 
-        logging.info("Starte Upload der Datei.")
+        logging.info('Starte Upload der Datei.')
         with open(file_path, 'rb') as file_data:
             files = {'file': file_data}
-            headers = {'Authorization': token}
+            headers = {'Authorization': f'Bearer {token}'}
             response = requests.post(target_url, files=files, headers=headers)
-            logging.info(f"Upload abgeschlossen. Statuscode: {response.status_code}")
+            logging.info(f'Upload abgeschlossen. Statuscode: {response.status_code}')
     else:
         logging.error('Login fehlgeschlagen.')
 else:
