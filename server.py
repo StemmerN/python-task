@@ -5,7 +5,8 @@ from fastapi.security import HTTPBasicCredentials, HTTPBasic
 app = FastAPI()
 security = HTTPBasic()
 
-users_db = {'Test': {'username': 'Test', 'password': '123456'}}
+users_db = {
+    'Test': {'username': 'Test', 'password': '123456'}}
 fixed_token = 'TestToken'
 
 
