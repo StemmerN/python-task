@@ -14,7 +14,7 @@ logging.basicConfig(
 )
 
 target_url = 'http://127.0.0.1:8000/upload-csv/'
-fixed_token = 'TestToken'
+
 
 parser = argparse.ArgumentParser(description='Skript zum Hochladen einer CSV-Datei.')
 parser.add_argument('-s', '--csv-path', type=str, required=True, help='Pfad zur CSV-Datei')
@@ -29,11 +29,12 @@ else:
     exit()
 
 logging.info('Starte Login-Prozess.')
-login_response = requests.post('http://127.0.0.1:8000/login', json={'username': 'Test', 'password': '123456'})
+login_response = requests.post('http://127.0.0.1:8000/login',
+                               json={'username': 'Test', 'password': '123456', 'token': 'TestToken'})
 if login_response.status_code == 200:
     login_data = login_response.json()
     if login_data['login']:
-        token = login_data['TestToken']
+        token = login_data['token']
         logging.info('Login erfolgreich.')
 
         logging.info('Starte Upload der Datei.')
@@ -48,4 +49,3 @@ else:
     logging.error('Fehler beim Login')
 
 # python .\main.py -s C:\Users\nikolais\Documents\python-task\vehicles.csv
-
