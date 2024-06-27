@@ -3,7 +3,6 @@ import os
 import argparse
 import logging
 
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -14,7 +13,6 @@ logging.basicConfig(
 )
 
 target_url = 'http://127.0.0.1:8000/upload-csv/'
-
 
 parser = argparse.ArgumentParser(description='Skript zum Hochladen einer CSV-Datei.')
 parser.add_argument('-s', '--csv-path', type=str, required=True, help='Pfad zur CSV-Datei')
@@ -30,7 +28,7 @@ else:
 
 logging.info('Starte Login-Prozess.')
 login_response = requests.post('http://127.0.0.1:8000/login',
-                               json={'username': 'Test', 'password': '123456', 'token': 'TestToken'})
+                               json={'username': 'Test', 'password': '123456', 'token': 'TestToken'}, )
 if login_response.status_code == 200:
     login_data = login_response.json()
     if login_data['login']:
@@ -45,7 +43,11 @@ if login_response.status_code == 200:
             logging.info(f'Upload abgeschlossen. Statuscode: {response.status_code}')
     else:
         logging.error('Login fehlgeschlagen.')
+        print(login_response)
+
 else:
     logging.error('Fehler beim Login')
+    print(login_response)
 
 # python .\main.py -s C:\Users\nikolais\Documents\python-task\vehicles.csv
+# python .\main.py -s C:\Users\nicolai\PycharmProjects\python-task\vehicles.csv
