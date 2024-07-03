@@ -1,4 +1,3 @@
-import argparse
 import requests
 import uvicorn
 from fastapi import FastAPI, File, UploadFile
@@ -6,12 +5,6 @@ from fastapi import FastAPI, File, UploadFile
 app = FastAPI()
 
 target_url = 'https://api.baubuddy.de/'
-
-parser = argparse.ArgumentParser(description='Skript zum Hochladen einer CSV-Datei.')
-parser.add_argument('-p', '--csv-path', type=str, required=True, help='Pfad zur CSV-Datei')
-args = parser.parse_args()
-
-file_path = args.csv_path
 
 url = "https://api.baubuddy.de/index.php/login"
 payload = {
