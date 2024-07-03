@@ -5,7 +5,6 @@ import requests
 
 target_url = 'http://127.0.0.1:8000/upload-csv/'
 
-
 parser = argparse.ArgumentParser(description='Skript zum Hochladen einer CSV-Datei.')
 parser.add_argument('-s', '--csv-path', type=str, required=True, help='Pfad zur CSV-Datei')
 args = parser.parse_args()

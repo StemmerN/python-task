@@ -1,5 +1,6 @@
 import requests
 import uvicorn
+import pandas as pd
 from fastapi import FastAPI, File, UploadFile
 
 app = FastAPI()
@@ -22,6 +23,8 @@ print(response.text)
 @app.post('/upload-csv/')
 async def root(file: UploadFile = File(...)):
     contents = await file.read()
+
+    df = pd.read_csv(contents)
 
     return {"filename": file.filename}
 
