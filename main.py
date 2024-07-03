@@ -9,5 +9,5 @@ with open(file_path, 'rb') as file_data:
 
 print(r.status_code)
 
-# python .\main.py -s C:\Users\nikolais\Documents\python-task\vehicles.csv
-# python .\main.py -s C:\Users\nicolai\PycharmProjects\python-task\vehicles.csv
+# python .\main.py -p C:\Users\nikolais\Documents\python-task\vehicles.csv
+# python .\main.py -p C:\Users\nicolai\PycharmProjects\python-task\vehicles.csv
