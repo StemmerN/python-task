@@ -51,6 +51,5 @@ async def upload_csv(file: UploadFile = File(...)):
         logging.error(f"Ein unerwarteter Fehler ist aufgetreten: {e}")
         return JSONResponse(content={"message": "Upload fehlgeschlagen", "error": str(e)}, status_code=500)
 
-
 if __name__ == '__main__':
     uvicorn.run(app, host="127.0.0.1", port=8000)
