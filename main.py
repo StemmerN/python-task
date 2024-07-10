@@ -39,6 +39,5 @@ except Exception as e:
     sys.exit(1)     # Stautscode 1 für allg. Fehler
 
 
-
 # python .\main.py -p C:\Users\nikolais\Documents\python-task\vehicles.csv
 # python .\main.py -p C:\Users\nicolai\PycharmProjects\python-task\vehicles.csv
