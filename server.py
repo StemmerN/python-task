@@ -1,28 +1,13 @@
 import logging
-from typing import io
-import requests
-import uvicorn
+import io
 import pandas as pd
+import uvicorn
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
-
-def get_token():
-    target_url = 'https://api.baubuddy.de/'
-    url = f"{target_url}index.php/login"
-    payload = {
-        "username": "365",
-        "password": "1"
-    }
-    headers = {
-        "Authorization": "Basic QVBJX0V4cGxvcmVyOjEyMzQ1NmlzQUxhbWVQYXNz",
-        "Content-Type": "application/json"
-    }
-    response = requests.post(url, json=payload, headers=headers)
-    response.raise_for_status()
-    return response.json()["token"]
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 @app.post('/upload-csv/')
@@ -32,23 +17,12 @@ async def upload_csv(file: UploadFile = File(...)):
         df = pd.read_csv(io.StringIO(contents.decode('utf-8')))
         logging.info(f"CSV-Datei erfolgreich gelesen: {df.head()}")
 
-        token = get_token()
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
-        }
-        target_url = 'https://api.baubuddy.de/'
-        url = f"{target_url}upload_csv"
-
-        response = requests.post(url, files={"file": (file.filename, contents, file.content_type)}, headers=headers)
-        response.raise_for_status()
-
-        return JSONResponse(content={"message": "Upload erfolgreich"}, status_code=200)
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Fehler beim Hochladen der Datei: {e}")
-        return JSONResponse(content={"message": "Upload fehlgeschlagen", "error": str(e)}, status_code=500)
+        return JSONResponse(content={"message": "CSV-Datei erfolgreich gelesen und verarbeitet"}, status_code=200)
+    except pd.errors.ParserError as e:
+        logging.exception("Fehler beim Parsen der CSV-Datei")
+        return JSONResponse(content={"message": "Fehler beim Parsen der CSV-Datei", "error": str(e)}, status_code=400)
     except Exception as e:
-        logging.error(f"Ein unerwarteter Fehler ist aufgetreten: {e}")
+        logging.exception("Ein unerwarteter Fehler ist aufgetreten")
         return JSONResponse(content={"message": "Upload fehlgeschlagen", "error": str(e)}, status_code=500)
 
 
