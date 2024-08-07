@@ -35,7 +35,7 @@ def validate_and_preprocess_csv(file_path):
                 row = adjusted_row
             processed_rows.append(row)
 
-        # Überschreiben der Originaldatei mit den überarbeiteten Daten
+        # Überschreiben der Originaldatei mit den überarbeiteten Datei
         with open(file_path, "w", encoding="utf-8", newline='') as outfile:
             writer = csv.writer(outfile)
             writer.writerows(processed_rows)
