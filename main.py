@@ -19,7 +19,7 @@ def validate_and_preprocess_csv(file_path):
         adjusted_rows = []
 
         # Lesen und Überarbeiten der CSV-Datei
-        with open(file_path, "r", encoding="utf-8") as infile:
+        with open(file_path, 'r', encoding='utf-8') as infile:
             reader = csv.reader(infile)
             rows = list(reader)
 
@@ -36,15 +36,15 @@ def validate_and_preprocess_csv(file_path):
             processed_rows.append(row)
 
         # Überschreiben der Originaldatei mit den überarbeiteten Datei
-        with open(file_path, "w", encoding="utf-8", newline='') as outfile:
+        with open(file_path, 'w', encoding='utf-8', newline='') as outfile:
             writer = csv.writer(outfile)
             writer.writerows(processed_rows)
 
-        logging.info(f"Die CSV-Datei wurde überarbeitet und überschrieben: {file_path}")
+        logging.info(f'Die CSV-Datei wurde überarbeitet und überschrieben: {file_path}')
         return True, inconsistent_rows, adjusted_rows
 
     except Exception as e:
-        logging.error(f"Fehler bei der Überarbeitung der CSV-Datei: {e}")
+        logging.error(f'Fehler bei der Überarbeitung der CSV-Datei: {e}')
         return False, [], []
 
 
@@ -69,7 +69,7 @@ def upload_csv(file_path, verbose=False):
             logging.debug(f'Response: {response.text}')
     except requests.exceptions.HTTPError as e:
         logging.exception(
-            f"HTTP-Fehler beim Hochladen der Datei: {e.response.text if e.response else 'Keine Antwort erhalten'}")
+            f'HTTP-Fehler beim Hochladen der Datei: {e.response.text if e.response else "Keine Antwort erhalten"}')
         logging.error(f'Fehlerdetails: {e.response.content if e.response else "Keine Antwort erhalten"}')
         logging.error(
             f'Fehlerdetails (JSON): {e.response.json() if e.response and e.response.content else "Keine Antwort erhalten"}')
@@ -89,14 +89,14 @@ args = parser.parse_args()
 success, inconsistent_rows, adjusted_rows = validate_and_preprocess_csv(args.csv_path)
 
 if not success:
-    logging.error("Überarbeitung der CSV-Datei fehlgeschlagen. Skript wird beendet.")
+    logging.error('Überarbeitung der CSV-Datei fehlgeschlagen. Skript wird beendet.')
     sys.exit(4)  # Statuscode 4 für Überarbeitungsfehler
 
 # Protokolldetails zu inkonsistenten und angepassten Zeilen
 if inconsistent_rows:
-    logging.info(f"Inconsistent rows: {inconsistent_rows}")
+    logging.info(f'Inconsistent rows: {inconsistent_rows}')
 if adjusted_rows:
-    logging.info(f"Adjusted rows: {adjusted_rows}")
+    logging.info(f'Adjusted rows: {adjusted_rows}')
 
 # Hochladen der überarbeiteten CSV-Datei
 upload_csv(args.csv_path, args.verbose)
