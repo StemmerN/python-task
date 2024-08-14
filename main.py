@@ -12,42 +12,6 @@ target_url = 'http://127.0.0.1:8003/upload-csv/'
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-def validate_and_preprocess_csv(file_path):
-    # überprüft die CSV-Datei
-    try:
-        inconsistent_rows = []
-        adjusted_rows = []
-
-        # Lesen und Überarbeiten der CSV-Datei
-        with open(file_path, 'r', encoding='utf-8') as infile:
-            reader = csv.reader(infile)
-            rows = list(reader)
-
-        header = rows[0]
-        expected_num_fields = len(header)
-
-        processed_rows = [header]
-        for line_number, row in enumerate(rows[1:], start=2):
-            if len(row) != expected_num_fields:
-                inconsistent_rows.append((line_number, row))
-                adjusted_row = row[:expected_num_fields] + [''] * (expected_num_fields - len(row))
-                adjusted_rows.append((line_number, adjusted_row))
-                row = adjusted_row
-            processed_rows.append(row)
-
-        # Überschreiben der Originaldatei mit den überarbeiteten Datei
-        with open(file_path, 'w', encoding='utf-8', newline='') as outfile:
-            writer = csv.writer(outfile)
-            writer.writerows(processed_rows)
-
-        logging.info(f'Die CSV-Datei wurde überarbeitet und überschrieben: {file_path}')
-        return True, inconsistent_rows, adjusted_rows
-
-    except Exception as e:
-        logging.error(f'Fehler bei der Überarbeitung der CSV-Datei: {e}')
-        return False, [], []
-
-
 def upload_csv(file_path, verbose=False):
     # Erhöhte Ausgabedetails aktivieren, wenn das entsprechende Argument gesetzt ist (-v)
     if verbose:
@@ -80,28 +44,15 @@ def upload_csv(file_path, verbose=False):
 
 
 # Argumentparser für Kommandozeilenargumente
-parser = argparse.ArgumentParser(description='Skript zum Überarbeiten und Hochladen einer CSV-Datei.')
+parser = argparse.ArgumentParser(description='Skript zum Hochladen einer CSV-Datei.')
 parser.add_argument('-p', '--csv-path', type=str, required=True, help='Pfad zur CSV-Datei')
 parser.add_argument('-v', '--verbose', action='store_true', help='Erhöhte Ausgabedetails')
 args = parser.parse_args()
 
-# Vorverarbeiten der CSV-Datei
-success, inconsistent_rows, adjusted_rows = validate_and_preprocess_csv(args.csv_path)
-
-if not success:
-    logging.error('Überarbeitung der CSV-Datei fehlgeschlagen. Skript wird beendet.')
-    sys.exit(4)  # Statuscode 4 für Überarbeitungsfehler
-
-# Protokolldetails zu inkonsistenten und angepassten Zeilen
-if inconsistent_rows:
-    logging.info(f'Inconsistent rows: {inconsistent_rows}')
-if adjusted_rows:
-    logging.info(f'Adjusted rows: {adjusted_rows}')
-
-# Hochladen der überarbeiteten CSV-Datei
+# Hochladen der CSV-Datei
 upload_csv(args.csv_path, args.verbose)
 
 
-# python .\main.py -p C:\Users\nikolais\Documents\python-task\vehicles_fixed.csv -v
-# python .\main.py -p C:\Users\nicolai\PycharmProjects\python-task\vehicles_fixed.csv -v
+# python .\main.py -p C:/Users/nikolais/Documents/python-task/vehicles.csv -v
+# python .\main.py -p C:\Users\nicolai\PycharmProjects\python-task\vehicles.csv -v
 
