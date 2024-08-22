@@ -18,6 +18,7 @@ def read_root():
     }
 
 
+# Abrufen des Zugriffstoken von der Baubuddy-API
 def get_access_token():
     try:
         url = 'https://api.baubuddy.de/index.php/login'
