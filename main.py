@@ -5,7 +5,7 @@ import sys
 import requests
 import pandas as pd
 from datetime import datetime
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill
 
 # Ziel-URL für den Upload
@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 def upload_csv(file_path, verbose=False):
-    # Erhöhte Ausgabedetails aktivieren, wenn das entsprechende Argument gesetzt ist (-v)
+    # Erhöhte Ausgabedetails, wenn das entsprechende Argument gesetzt ist (-v)
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
@@ -48,23 +48,27 @@ def upload_csv(file_path, verbose=False):
 
 
 def process_and_save_to_excel(response_data, keys, colored, excel_saving_path=None):
-    # Excel-Workbook erstellen
-    wb = Workbook()
-    ws = wb.active
+    file_name = 'vehicles.xlsx'
 
-    # Header setzen
-    headers = ['rnr'] + keys
-    ws.append(headers)
+    if excel_saving_path:
+        file_name = os.path.join(excel_saving_path, file_name)
 
-    # Daten einfügen
+    if os.path.exists(file_name):
+        wb = load_workbook(file_name)
+        ws = wb.active
+    else:
+        wb = Workbook()
+        ws = wb.active
+        headers = ['rnr'] + keys
+        ws.append(headers)
+
     for vehicle in response_data['vehicle_data']:
         row = [vehicle.get('rnr', '')]
         for key in keys:
             row.append(vehicle.get(key, ''))
         ws.append(row)
 
-        # Farbige Hervorhebung der Zeilen basierend auf `hu`
-        if colored and ws.max_row > 1:  # Sicherstellen, dass Zeilen vorhanden sind
+        if colored and ws.max_row > 1:
             hu_date = vehicle.get('hu')
             if hu_date:
                 hu_date = datetime.strptime(hu_date, '%Y-%m-%d')
@@ -77,19 +81,11 @@ def process_and_save_to_excel(response_data, keys, colored, excel_saving_path=No
                 else:
                     fill = PatternFill(start_color="b30000", end_color="b30000", fill_type="solid")
 
-                for cell in ws[ws.max_row]:  # Hier sicherstellen, dass auf die korrekte Zeile zugegriffen wird
+                for cell in ws[ws.max_row]:
                     cell.fill = fill
 
-    # Speichern der Datei
-    current_date = datetime.now().date().isoformat()
-    file_name = f'vehicles_{current_date}.xlsx'
-
-    # Falls ein Speicherort angegeben werden soll, alternativ wird weiterhin im aktuellen Verzeichnis gespeichert.
-    if excel_saving_path:
-        file_name = os.path.join(excel_saving_path, file_name)
-
     wb.save(file_name)
-    logging.info(f'Datei {file_name} wurde erfolgreich erstellt.')
+    logging.info(f'Datei {file_name} wurde erfolgreich aktualisiert.')
 
 
 # Argumentparser für Kommandozeilenargumente
