@@ -8,53 +8,55 @@ from datetime import datetime
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill
 
-# Ziel-URL für den Upload
+# Target URL for the CSV upload
 target_url = 'http://127.0.0.1:8003/upload-csv/'
 
-# Konfiguration des Loggings
+# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def upload_csv(file_path, verbose=False):
-    # Erhöhte Ausgabedetails, wenn das entsprechende Argument gesetzt ist (-v)
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    # Prüfen, ob die Datei existiert
     if not os.path.exists(file_path):
-        logging.error('Die Datei existiert nicht.')
-        sys.exit(2)  # Statuscode 2 für Datei nicht gefunden
+        logging.error('The file does not exist.')
+        sys.exit(2)  # Exit code 2 for file not found
 
     try:
         with open(file_path, 'rb') as file_data:
             files = {'file': file_data}
-            logging.info('Beginne mit dem Hochladen der Datei...')
+            logging.info('Starting to upload the file...')
             response = requests.post(target_url, files=files)
-            response.raise_for_status()  # HTTP-Fehler auslösen, falls Statuscode nicht 200
-            logging.info('Datei erfolgreich hochgeladen.')
+            response.raise_for_status()  # Raise HTTP error if status code is not 200
+            logging.info('File successfully uploaded.')
             logging.debug(f'Status Code: {response.status_code}')
             logging.debug(f'Response: {response.text}')
-            return response.json()  # JSON-Antwort zurückgeben
+            return response.json()  # Return JSON response
     except requests.exceptions.HTTPError as e:
         logging.exception(
-            f'HTTP-Fehler beim Hochladen der Datei: {e.response.text if e.response else "Keine Antwort erhalten"}')
-        logging.error(f'Fehlerdetails: {e.response.content if e.response else "Keine Antwort erhalten"}')
+            f'HTTP error while uploading the file: {e.response.text if e.response else "No response received"}')
+        logging.error(f'Error details: {e.response.content if e.response else "No response received"}')
         logging.error(
-            f'Fehlerdetails (JSON): {e.response.json() if e.response and e.response.content else "Keine Antwort erhalten"}')
-        sys.exit(3)  # Statuscode 3 für Netzwerk- oder HTTP-Fehler
+            f'Error details (JSON): {e.response.json() if e.response and e.response.content else "No response received"}')
+        sys.exit(3)  # Exit code 3 for network or HTTP error
     except Exception as e:
-        logging.exception('Ein unerwarteter Fehler ist aufgetreten')
-        sys.exit(1)  # Statuscode 1 für allgemeine Fehler
+        logging.exception('An unexpected error occurred')
+        sys.exit(1)  # Exit code 1 for general errors
 
 
-def process_and_save_to_excel(response_data, keys, colored, excel_saving_path=None):
-    file_name = 'vehicles.xlsx'
+def process_and_save_to_excel(response_data, keys, colored, excel_output_path=None):
+    keys = list(set(keys))
 
-    if excel_saving_path:
-        file_name = os.path.join(excel_saving_path, file_name)
+    # Default filename if no path is provided
+    if not excel_output_path:
+        excel_output_path = './vehicles.xlsx'
 
-    if os.path.exists(file_name):
-        wb = load_workbook(file_name)
+    # Check if the file already exists
+    file_exists = os.path.exists(excel_output_path)
+
+    if file_exists:
+        wb = load_workbook(excel_output_path)
         ws = wb.active
     else:
         wb = Workbook()
@@ -62,12 +64,14 @@ def process_and_save_to_excel(response_data, keys, colored, excel_saving_path=No
         headers = ['rnr'] + keys
         ws.append(headers)
 
+    # Insert data
     for vehicle in response_data['vehicle_data']:
         row = [vehicle.get('rnr', '')]
         for key in keys:
             row.append(vehicle.get(key, ''))
         ws.append(row)
 
+        # Highlight rows based on `hu` values
         if colored and ws.max_row > 1:
             hu_date = vehicle.get('hu')
             if hu_date:
@@ -84,22 +88,22 @@ def process_and_save_to_excel(response_data, keys, colored, excel_saving_path=No
                 for cell in ws[ws.max_row]:
                     cell.fill = fill
 
-    wb.save(file_name)
-    logging.info(f'Datei {file_name} wurde erfolgreich aktualisiert.')
+    # Save the workbook
+    wb.save(excel_output_path)
+    logging.info(f'File {excel_output_path} has been successfully created or updated.')
 
 
-# Argumentparser für Kommandozeilenargumente
-parser = argparse.ArgumentParser(description='Skript zum Hochladen einer CSV-Datei und Verarbeitung der API-Antwort.')
-parser.add_argument('-p', '--csv-path', type=str, required=True, help='Pfad zur CSV-Datei')
-parser.add_argument('-k', '--keys', nargs='+', required=True, help='Schlüssel für zusätzliche Spalten')
-parser.add_argument('-c', '--colored', action='store_true', default=True, help='Zeilen farblich hervorheben')
-parser.add_argument('-e', '--excel-saving-path', type=str, help='Optionaler Speicherort für die Excel-Datei')
-parser.add_argument('-v', '--verbose', action='store_true', help='Erhöhte Ausgabedetails')
+# Argument parser for command-line arguments
+parser = argparse.ArgumentParser(description='Script to upload a CSV file and process the API response.')
+parser.add_argument('-p', '--csv-path', type=str, required=True, help='Path to the CSV file')
+parser.add_argument('-c', '--colored', action='store_true', default=True, help='Highlight rows based on conditions')
+parser.add_argument('-o', '--excel-output-path', type=str, help='Optional path and filename for the Excel file')
+parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
 args = parser.parse_args()
 
-# CSV-Datei hochladen und Response verarbeiten
+# Upload CSV file and process the response
 response_data = upload_csv(args.csv_path, args.verbose)
-process_and_save_to_excel(response_data, args.keys, args.colored, args.excel_saving_path)
+process_and_save_to_excel(response_data, args.keys, args.colored, args.excel_output_path)
 
 # python .\main.py -p C:/Users/nikolais/Documents/python-task/vehicles.csv -k rnr labelIds hu -c -v
 # python .\main.py -p C:\Users\nicolai\PycharmProjects\python-task\vehicles.csv -k rnr labelIds hu -c -v

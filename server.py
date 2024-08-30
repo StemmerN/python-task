@@ -14,11 +14,11 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 @app.get('/')
 def read_root():
     return {
-        'message': 'Willkommen bei der FastAPI Anwendung. Verfügbare Endpunkte: /upload-csv/, /get-vehicles/'
+        'message': 'Welcome to the FastAPI application. Available endpoints: /upload-csv/, /get-vehicles/'
     }
 
 
-# Abrufen des Zugriffstoken von der Baubuddy-API
+# Retrieve the access token from the Baubuddy API
 def get_access_token():
     try:
         url = 'https://api.baubuddy.de/index.php/login'
@@ -35,7 +35,7 @@ def get_access_token():
         access_token = response.json()['oauth']['access_token']
         return access_token
     except Exception as e:
-        logging.exception('Fehler beim Abrufen des Zugangstokens')
+        logging.exception('Error while fetching the access token')
         raise
 
 
@@ -49,7 +49,7 @@ def get_active_vehicles(access_token):
         response.raise_for_status()
         return response.json()
     except Exception as e:
-        logging.exception('Fehler beim Abrufen der aktiven Fahrzeuge')
+        logging.exception('Error while fetching active vehicles')
         raise
 
 
@@ -66,7 +66,7 @@ def get_color_code(access_token, label_ids):
             data = response.json()
             colors[label_id] = data['colorCode']
         except Exception as e:
-            logging.exception(f'Fehler beim Abrufen der Farbe für Label ID {label_id}')
+            logging.exception(f'Error fetching the color for Label ID {label_id}')
             colors[label_id] = None
     return colors
 
@@ -77,24 +77,24 @@ async def upload_csv(file: UploadFile = File(...)):
         contents = await file.read()
         csv_str = contents.decode('utf-8')
 
-        # Kopfzeile der CSV-Datei wird ausgelesen um zu bestimmen wie viele Felder die Datei hat
+        # Read the CSV file header to determine how many fields the file has
         first_line = csv_str.split('\n')[0]
         expected_fields = len(first_line.split(';'))
-        logging.info(f'Erwartete Anzahl der Felder: {expected_fields}')
+        logging.info(f'Expected number of fields: {expected_fields}')
 
-        # Debug: Ausgeben der fehlerhaften Zeilen
+        # Debug: Output erroneous lines
         lines = csv_str.split('\n')
         for i, line in enumerate(lines):
             if len(line.split(';')) != expected_fields:
-                logging.error(f'Fehlerhafte Zeile {i+1}: {line}')
+                logging.error(f'Erroneous line {i+1}: {line}')
 
         csv_data = pd.read_csv(io.StringIO(csv_str), delimiter=';')
-        logging.info(f'CSV-Datei erfolgreich gelesen: {csv_data.head()}')
+        logging.info(f'CSV file successfully read: {csv_data.head()}')
 
         access_token = get_access_token()
         active_vehicles = get_active_vehicles(access_token)
 
-        # Fahrzeuge ohne 'hu'-Feld herausfiltern und Farben der Labels auflösen
+        # Filter out vehicles without 'hu' field and resolve label colors
         filtered_vehicles = []
         for vehicle in active_vehicles:
             if vehicle.get('hu'):
@@ -102,28 +102,28 @@ async def upload_csv(file: UploadFile = File(...)):
                 vehicle['labelColors'] = get_color_code(access_token, label_ids)
                 filtered_vehicles.append(vehicle)
 
-        # Kombinierte Datenstruktur erstellen
+        # Create combined data structure
         combined_data = {
             'csv_data': csv_data.to_dict(orient='records'),
             'vehicle_data': filtered_vehicles
         }
 
-        # Duplikate in den Fahrzeugdaten entfernen
+        # Remove duplicates in vehicle data
         combined_data['vehicle_data'] = list({v['labelIds']: v for v in combined_data['vehicle_data']}.values())
 
-        # NaN-Werte in CSV-Daten in None umwandeln (was in JSON als null dargestellt wird)
+        # Convert NaN values in CSV data to None (which is represented as null in JSON)
         combined_data['csv_data'] = [{k: (None if pd.isna(v) else v) for k, v in record.items()} for record in combined_data['csv_data']]
 
-        # Kombinierte Datenstruktur als JSON-Antwort zurückgeben
-        logging.info(f'Kombinierte Daten: {combined_data}')
+        # Return combined data structure as JSON response
+        logging.info(f'Combined data: {combined_data}')
         return JSONResponse(content=combined_data, status_code=200)
 
     except pd.errors.ParserError as e:
-        logging.exception('Fehler beim Lesen der CSV-Datei')
-        return JSONResponse(content={'message': 'Fehler beim Verarbeiten der CSV-Datei', 'error': str(e)}, status_code=400)
+        logging.exception('Error reading the CSV file')
+        return JSONResponse(content={'message': 'Error processing the CSV file', 'error': str(e)}, status_code=400)
     except Exception as e:
-        logging.exception('Ein unerwarteter Fehler ist aufgetreten')
-        return JSONResponse(content={'message': 'Upload fehlgeschlagen', 'error': str(e)}, status_code=500)
+        logging.exception('An unexpected error occurred')
+        return JSONResponse(content={'message': 'Upload failed', 'error': str(e)}, status_code=500)
 
 
 @app.get('/get-vehicles/')
@@ -133,8 +133,8 @@ def get_vehicles():
         vehicles_data = get_active_vehicles(access_token)
         return JSONResponse(content=vehicles_data, status_code=200)
     except Exception as e:
-        logging.exception('Fehler beim Abrufen der Fahrzeugdaten')
-        return JSONResponse(content={'message': 'Fehler beim Abrufen der Fahrzeugdaten', 'error': str(e)}, status_code=500)
+        logging.exception('Error while fetching vehicle data')
+        return JSONResponse(content={'message': 'Error fetching vehicle data', 'error': str(e)}, status_code=500)
 
 
 if __name__ == '__main__':
